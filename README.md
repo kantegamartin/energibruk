@@ -50,6 +50,8 @@ applikasjonen under kjøring. Siden dette går inn i kjernen av prosessoren, er 
 kjøre dette som administrator på maskinen. En utfordring da er at Java gjerne ikke er installert for admin. Men vi trenger bare tilgang til
 selve programmet 'java', og så kan vi bruke full sti dit.
 
+### Linux
+
 ```shell
 $ mvn --version
 Apache Maven 3.9.6 (bc0240f3c744dd6b6ec2920b3cd08dcc295161ae)
@@ -65,7 +67,29 @@ Her ser vi at jeg har java i /home/martin/.sdkman/candidates/java/21.0.3-tem. De
 sudo /home/martin/.sdkman/candidates/java/21.0.3-tem/bin/java -javaagent:joularjx-3.0.0.jar -cp target/one-billion-row-challenge-1.0.0-SNAPSHOT.jar no.kantega.obrc.Solution ../1brc/measurements.txt
 ```
 
-Resultatet hos meg blir da:
+### Windows
+
+Windows krever litt mer programvare for å kunne kjøre Java-agenten. RAPL er nemlig ikke direkte tilgjengelig.
+
+#### Visual C++ Redistributable
+Denne er tilgjenelig fra Microsoft her: https://aka.ms/vs/17/release/vc_redist.x64.exe
+Beskrivelse finnes her: https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170
+
+#### RAPL-driver
+RAPL-driveren finnes her: https://github.com/hubblo-org/windows-rapl-driver. Den er ikke signert, så den krever litt konfigurasjon av Windows for å godta usignerte drivere. Det betyr også er restart av maskinen. Alt er beskrevet i README.md i hubblo-org-repoet.
+
+#### PowerMonitor
+PowerMonitor er et interface mellom RAPL-driveren og Java-agenten. Denne kan lastes ned her: https://github.com/joular/WinPowerMonitor. Hvis du ikke lagrer den i "C:\joularjx", må du oppdatere config.properties-filen til å peke på rett sted.
+
+#### Kjøring
+Nå kan vi kjøre applikasjonen på Windows med:
+```shell
+java -javaagent:joularjx-3.0.0.jar -cp target/one-billion-row-challenge-1.0.0-SNAPSHOT.jar no.kantega.obrc.Solution ../1brc/measurements.txt
+```
+
+### Resultat
+
+Resultatet hos meg blir da noe slikt som:
 ```
 08/08/2024 05:06:57.909 - [INFO] - +---------------------------------+
 08/08/2024 05:06:57.910 - [INFO] - | JoularJX Agent Version 3.0.0    |
