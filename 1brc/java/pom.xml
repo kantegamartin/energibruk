@@ -104,21 +104,6 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
           <version>3.12.1</version>
-          <configuration>
-            <parameters>true</parameters>
-            <compilerArgs>
-              <!--
-                IntelliJ does not yet support the enablePreview configuration option.
-                Therefore, we use a compiler argument.
-                See https://youtrack.jetbrains.com/issue/IDEA-296303
-              -->
-              <compilerArg>--enable-preview</compilerArg>
-              <compilerArg>--add-modules</compilerArg>
-              <compilerArg>java.base,jdk.incubator.vector</compilerArg>
-              <compilerArg>--add-opens=java.base/java.lang=ALL-UNNAMED</compilerArg>
-              <compilerArg>--add-opens=java.base/jdk.internal.util=ALL-UNNAMED</compilerArg>
-            </compilerArgs>
-          </configuration>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -290,34 +275,6 @@
       <properties>
         <skipTests>true</skipTests>
       </properties>
-    </profile>
-    <profile>
-      <id>jdk22</id>
-      <activation>
-        <jdk>22</jdk>
-      </activation>
-      <properties>
-      </properties>
-      <build>
-        <pluginManagement>
-          <plugins>
-            <plugin>
-              <artifactId>maven-compiler-plugin</artifactId>
-              <configuration>
-                <release>22</release>
-                <compileSourceRoots>
-                  <compileSourceRoot>${project.basedir}/src/main/java-22</compileSourceRoot>
-                  <!--
-                    Uncomment the next line to build the entire project with jdk22.
-                    Currently, some classes fail to compile under jdk22.
-                  -->
-                  <!-- <compileSourceRoot>${project.build.sourceDirectory}</compileSourceRoot> -->
-                </compileSourceRoots>
-              </configuration>
-            </plugin>
-          </plugins>
-        </pluginManagement>
-      </build>
     </profile>
   </profiles>
 </project>
