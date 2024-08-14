@@ -57,8 +57,8 @@ Men vi har strengt tatt ikke løst problemet.
 * Er det noen måte dette **kan** løses på?
 
 
-### Linux
-En utfordring på Linux er at Java gjerne ikke er installert for root. 
+### Linux / macOS
+En utfordring er at Java gjerne ikke er installert for root. 
 ```shell
 $ java -version
 openjdk version "21.0.3" 2024-04-16 LTS
@@ -76,7 +76,7 @@ Vi trenger heldigvis bare tilgang til selve programmet 'java', og så kan vi bru
 sudo $JAVA_HOME/bin/java -javaagent:joularjx-3.0.0.jar -cp target/one-billion-row-challenge-1.0.0-SNAPSHOT.jar no.kantega.obrc.Solution ../1brc/measurements.txt
 ```
 
-Merk at JAVA_HOME ikke nødvendigvis peker på den samme Java-installasjonen som Maven bruker:
+Merk at JAVA_HOME ikke nødvendigvis peker på den samme Java-installasjonen som den Maven bruker.
 
 ```shell
 $ echo $JAVA_HOME
@@ -89,7 +89,7 @@ Default locale: en_US, platform encoding: UTF-8
 OS name: "linux", version: "6.8.0-39-generic", arch: "amd64", family: "unix"
 ```
 
-JAVA_HOME peker på /home/martin/.sdkman/candidates/java/current, mens maven finner java i /home/martin/.sdkman/candidates/java/21.0.3-tem. Siden jeg bruker [SDKMAN](https://sdkman.io/), er den første en soft link til den siste. Ditt oppsett kan gi litt forskjellie resultater.
+JAVA_HOME peker på /home/martin/.sdkman/candidates/java/current, mens maven finner java i /home/martin/.sdkman/candidates/java/21.0.3-tem. Siden jeg bruker [SDKMAN](https://sdkman.io/), er den første en soft link til den siste. Ditt oppsett kan gi litt forskjellige resultater.
 
 ### Windows
 
