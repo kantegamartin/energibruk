@@ -45,14 +45,42 @@ Prøv gjerne med litt forskjellige filer.
 ## Oppgave 3
 
 [JoularJX](https://www.noureddine.org/research/joular/joularjx) er en Java-agent som måler energiforbruket til en applikasjon under kjøring.
-Versjon 3.0.0 er vedlagt. Agenten bruker Intel sitt RAPL (Running Average Power Limit) grensesnitt for å lese av energibruken til
-applikasjonen under kjøring. Siden dette går inn i kjernen av prosessoren, er dette kun tilgjengelig via priviligert tilgang. Mao. vi må
-kjøre dette som administrator på maskinen. En utfordring da er at Java gjerne ikke er installert for admin. Men vi trenger bare tilgang til
-selve programmet 'java', og så kan vi bruke full sti dit.
+Versjon 3.0.0 er vedlagt i repoet. Agenten bruker Intel sitt RAPL (Running Average Power Limit) grensesnitt for å lese av energibruken til
+applikasjonen under kjøring. Siden dette går inn i kjernen av prosessoren, er dette kun tilgjengelig via priviligert tilgang. Det betyr at vi må laste ned og installere drivere og verktøy fra GitHub og kjøre de i administratormodus. Her er det mange røde flagg!
+
+### Virtuell maskin?
+
+Å kjøre det i en virtuell maskin, fungerer ganske dårlig, ettersom det faktiske energiforbruket må hentes fra en faktisk prosessor. Det er mulig å installere noe som f.x. [PowerJoular](https://www.noureddine.org/articles/powerjoular-1-0-monitoring-inside-virtual-machines). Denne kan eksponere den underliggende RAPL-informasjonen til en VirtualBox- eller VMWare-instans. En annen mulighet er [Scaphandre](https://github.com/hubblo-org/scaphandre), som gir et Prometheus-grensesnitt inn i energimåling.
+
+Men vi har strengt tatt ikke løst problemet.
+
+* Er det noen måte dette **kan** løses på?
+
 
 ### Linux
+En utfordring på Linux er at Java gjerne ikke er installert for root. 
+```shell
+$ java -version
+openjdk version "21.0.3" 2024-04-16 LTS
+OpenJDK Runtime Environment Temurin-21.0.3+9 (build 21.0.3+9-LTS)
+OpenJDK 64-Bit Server VM Temurin-21.0.3+9 (build 21.0.3+9-LTS, mixed mode, sharing)
+$ sudo !!
+sudo java -version
+[sudo] password for martin: 
+sudo: java: command not found
+```
+
+Vi trenger heldigvis bare tilgang til selve programmet 'java', og så kan vi bruke full sti uten å måtte sette opp full JDK-støtte for root.
 
 ```shell
+sudo $JAVA_HOME/bin/java -javaagent:joularjx-3.0.0.jar -cp target/one-billion-row-challenge-1.0.0-SNAPSHOT.jar no.kantega.obrc.Solution ../1brc/measurements.txt
+```
+
+Merk at JAVA_HOME ikke nødvendigvis peker på den samme Java-installasjonen som Maven bruker:
+
+```shell
+$ echo $JAVA_HOME
+/home/martin/.sdkman/candidates/java/current
 $ mvn --version
 Apache Maven 3.9.6 (bc0240f3c744dd6b6ec2920b3cd08dcc295161ae)
 Maven home: /home/martin/.sdkman/candidates/maven/current
@@ -61,15 +89,11 @@ Default locale: en_US, platform encoding: UTF-8
 OS name: "linux", version: "6.8.0-39-generic", arch: "amd64", family: "unix"
 ```
 
-Her ser vi at jeg har java i /home/martin/.sdkman/candidates/java/21.0.3-tem. Dermed kan jeg nå kjøre bin/java derfra:
-
-```shell
-sudo /home/martin/.sdkman/candidates/java/21.0.3-tem/bin/java -javaagent:joularjx-3.0.0.jar -cp target/one-billion-row-challenge-1.0.0-SNAPSHOT.jar no.kantega.obrc.Solution ../1brc/measurements.txt
-```
+JAVA_HOME peker på /home/martin/.sdkman/candidates/java/current, mens maven finner java i /home/martin/.sdkman/candidates/java/21.0.3-tem. Siden jeg bruker [SDKMAN](https://sdkman.io/), er den første en soft link til den siste. Ditt oppsett kan gi litt forskjellie resultater.
 
 ### Windows
 
-Windows krever litt mer programvare for å kunne kjøre Java-agenten. RAPL er nemlig ikke direkte tilgjengelig.
+Windows krever litt mer programvare for å kunne kjøre Java-agenten. RAPL er nemlig ikke direkte tilgjengelig. 
 
 #### Visual C++ Redistributable
 Denne er tilgjenelig fra Microsoft her: https://aka.ms/vs/17/release/vc_redist.x64.exe
@@ -87,7 +111,7 @@ Nå kan vi kjøre applikasjonen på Windows med:
 java -javaagent:joularjx-3.0.0.jar -cp target/one-billion-row-challenge-1.0.0-SNAPSHOT.jar no.kantega.obrc.Solution ../1brc/measurements.txt
 ```
 
-### Resultat
+## Oppgave 4
 
 Resultatet hos meg blir da noe slikt som:
 ```
@@ -99,7 +123,9 @@ Resultatet hos meg blir da noe slikt som:
 08/08/2024 05:06:57.947 - [INFO] - Please wait while initializing JoularJX...
 08/08/2024 05:06:58.963 - [INFO] - Initialization finished
 08/08/2024 05:06:58.965 - [INFO] - Started monitoring application with ID 2060117
+
 {Abéché=30.8/30.8/30.8, Albuquerque=16.7/16.7/16.7, ... }
+
 08/08/2024 05:07:00.080 - [INFO] - Thread CPU time negative, taking previous time + 1 : 1 for thread: 1
 08/08/2024 05:07:00.101 - [INFO] - JoularJX finished monitoring application with ID 2060117
 08/08/2024 05:07:00.102 - [INFO] - Program consumed 5.81 joules
@@ -108,23 +134,16 @@ Resultatet hos meg blir da noe slikt som:
 
 JoularJX rapporterer nå energiforbruket i terminalen (her 5,81 joules). I tillegg opprettes det en katalog 'joularjx-result'. 
 Under der lages det en katalog for hver joularjx-kjøring. Her 2060117-1723129617923, der 2060117 er prosess-id'en som kjøres
-og 1723129617923 er tidspunktet kjøringen startet (Unix epoch for 8. august, 2024 17:06:57.923 GMT+02:00 DST). 
+og 1723129617923 er tidspunktet kjøringen startet (Unix epoch for 8. august, 2024 17:06:57.923 GMT+02:00 CEST). 
 Det lagres mye informasjon om kjøringen i filene under her. For eksempel kan vi se på filen joularJX-*-all-methods-energy.csv' i
 'joularjx-result/*/all/total/methods'. Denne inneholder en liste av alle metoder som er kalt, og hvor mye
 energi hver brukte.
 
 * Hvilke metoder er dyrest?
 
-### Virtuell maskin?
+## Oppgave 5
 
-Å kjøre det i en virtuell maskin, fungerer ganske dårlig, ettersom det faktiske energiforbruket må hentes fra en faktisk prosessor.
-Dermed ender vi i en catch-22-situasjon. Men det er mulig å installere noe som f.x. [PowerJoular](https://www.noureddine.org/articles/powerjoular-1-0-monitoring-inside-virtual-machines). Denne kan eksponere den underliggende RAPL-informasjonen til en VirtualBox- 
-eller VMWare-instans. 
-
-
-## Oppgave 4
-
-Den aller enkleste måten å øke hastigheten på denne koden, er å bruke parallelle streams i Java. Dette gjøres enkelt og greit med
+Vi kan selvsagt se på den dyreste metoden og optimalisere den. Men JVM har en del interessante triks i ermet som vi kan prøve først. Den aller enkleste endringen er å bruke parallelle streams i Java. Dette gjøres enkelt og greit med
 å legge til '.parallel()' før kallet til '.map()' på linje 68 i Solution.java.
 
 * Bygg applikasjonen på nytt
@@ -132,7 +151,7 @@ Den aller enkleste måten å øke hastigheten på denne koden, er å bruke paral
 * Sammenlign energiforbruk på de to versjonene
 * Er forholdet mellom tid og energi som forventet?
 
-## Oppgave 5
+## Oppgave 6
 
 Javascript
 
