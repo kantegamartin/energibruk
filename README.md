@@ -188,6 +188,37 @@ Det er vedlagt et skript som gjør dette litt krøkkete, powerRun.sh.
 * Hvordan blir forholdet mellom spart tid og spart energi?
 
 
+## Oppgave 9
+
+Det finnes en løsning for PostgreSQL i postgres-katalogen.Denne baserer seg på å først kjøre PostgreSQL opp i en Docker. Deretter brukes psql til å kjøre et testskript.
+
+```shell
+docker compose up -d
+psql postgresql://postgres:postgres@localhost:5432/sustainability -f test.sql
+```
+
+Eksperimenter litt med forskjellige datasett til du finner ett som bruker fornuftig kjøretid.
+
+## Oppgave 10
+
+Vi kan bruke PowerJoular til å måle energiforbruket på docker-prosessen mens vi kjører testskriptet. Det gjøres enklest ved å starte powerjoular i et eget vindu:
+```shell
+sudo powerjoular -p $(pidof docker) -t -f p.out
+```
+
+Deretter startes testskriptet som i oppgave 9. Når skriptet et ferdig, kan vi avbryte powerjoular for å få totalforbruket.
+
+```shell
+psql postgresql://postgres:postgres@localhost:5432/sustainability -f test.sql
+```
+
+## Oppgave 11
+
+* Sammenlign å lage indeksen før og etter innlesing av data ved å bytte om rekkefølgen på 'CREATE INDEX' og 'COPY' i test.sql.
+* Hva skyldes forskjellen?
+* Hvordan er forholdet mellom tid og energiforbruk her?
+
+
 # Kode og opphavsrett
 
 ## Java-kode
