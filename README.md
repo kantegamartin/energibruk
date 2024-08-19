@@ -153,7 +153,39 @@ Vi kan selvsagt se på den dyreste metoden og optimalisere den. Men JVM har en d
 
 ## Oppgave 6
 
-Javascript
+Det finnes også en løsning i Javascript i katalogen 'nodejs'. Denne bruker de samme filene som genereres for Java-løsningen. Koden bruker Node 20 og kan kjøres med
+
+```shell
+time node baseline/index.js ../1brc/measurements.txt
+```
+
+## Oppgave 7
+
+For å måle energiforbruket på et Java-program, brukte vi en dedikert Java-agent. For NodeJS, kan vi bruke den generiske [PowerJoular](https://github.com/joular/powerjoular), men denne støtter for tiden bare Linux.
+
+PowerJoular installeres og lastes ned ved å bygge [Ada-koden selv](https://joular.github.io/powerjoular/ref/compilation.html), eller ved å [laste ned ferdige pakker](https://github.com/joular/powerjoular/releases) for Debian eller Red Hat.
+
+PowerJoular måler energiforbruket i prosessoren i real time. Den kan begrenses til en enkelt prosess med et -p parameter. I tillegg kan den skrive til en fil underveis.
+
+Ved å kjøre
+```shell
+sudo powerjoular -p $ID -t -f p.out
+```
+får vi energiforbruket til prosess ID skrevet ut på skjermen (-t) og til filen p.out (-f). 
+
+PowerJoular rapporterer bruk frem til den avsluttes. Dersom programmet den overvåker avsluttes, feiler den. Så for å måle en kjøring, må vi:
+1. Starte NodeJs i bakgrunnen og spare på prosess ID
+2. Starte PowerJoular i bakgrunnen og spare på prosess ID
+3. Sende et termineringssignal til PowerJoular når node-appen avsluttes
+
+Det er vedlagt et skript som gjør dette litt krøkkete, powerRun.sh.
+
+* Kan det forbedres?
+
+## Oppgave 8
+
+* Hvordan kan Javascript-løsningen forbedres?
+* Hvordan blir forholdet mellom spart tid og spart energi?
 
 
 # Kode og opphavsrett
