@@ -1,6 +1,5 @@
 version: "3"
 
-name: pg
 services:
   database:
     image: "postgres"
