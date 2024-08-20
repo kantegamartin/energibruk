@@ -17,7 +17,7 @@ Det første som trengs er å lage en fil med målinger som kan leses. Dette gjø
 
 Det enkleste er å kjøre skriptet 'c' i 1brc:
 ```shell
-./c 100
+./createMeasurements.sh 100
 ```
 
 Hvis bash ikke er tilgjengelig, kjøres genereringen via standard Java-kommandoer:
@@ -26,7 +26,7 @@ mvn package
 java -cp target/average-1.0.0-SNAPSHOT.jar dev.morling.onebrc.CreateMeasurements 100
 ```
 
-Den resulterende filen 'measures.txt' inneholder så 100 rader og kan benyttes i de påfølgende oppgavene. Det kan være lurt å lage litt forskjellige varianter med litt forskjellig antall rader. Å kjøre baseline-koden med 100 millioner rader tar over 20 sekunder på min maskin.
+Den resulterende filen 'measurements.txt' inneholder så 100 rader og kan benyttes i de påfølgende oppgavene. Det kan være lurt å lage litt forskjellige varianter med litt forskjellig antall rader. Å kjøre baseline-koden med 100 millioner rader tar over 20 sekunder på min maskin.
 
 ## Oppgave 2
 
@@ -40,6 +40,8 @@ java -cp target/one-billion-row-challenge-1.0.0-SNAPSHOT.jar no.kantega.obrc.Sol
 time java -cp target/one-billion-row-challenge-1.0.0-SNAPSHOT.jar no.kantega.obrc.Solution ../1brc/measurements.txt
 ```
 
+Det er vedlagt et script 'timeRun.sh' som tar inn et filnavn som parameter og tar tiden på kjøringen.
+
 Prøv gjerne med litt forskjellige filer.
 
 ## Oppgave 3
@@ -47,6 +49,8 @@ Prøv gjerne med litt forskjellige filer.
 [JoularJX](https://www.noureddine.org/research/joular/joularjx) er en Java-agent som måler energiforbruket til en applikasjon under kjøring.
 Versjon 3.0.0 er vedlagt i repoet. Agenten bruker Intel sitt RAPL (Running Average Power Limit) grensesnitt for å lese av energibruken til
 applikasjonen under kjøring. Siden dette går inn i kjernen av prosessoren, er dette kun tilgjengelig via priviligert tilgang. Det betyr at vi må laste ned og installere drivere og verktøy fra GitHub og kjøre de i administratormodus. Her er det mange røde flagg!
+
+Det er vedalgt et script 'joularRun.sh' som gjør forsøk på å finne en fungerende java og kjøre denne som 'root' med joularjx-agenten. På samme måte som 'timeRun.sh', tar den inn et filnavn som parameter. Dette filnavnet angir hvilken fil som skal leses.
 
 ### Virtuell maskin?
 
@@ -144,7 +148,7 @@ energi hver brukte.
 ## Oppgave 5
 
 Vi kan selvsagt se på den dyreste metoden og optimalisere den. Men JVM har en del interessante triks i ermet som vi kan prøve først. Den aller enkleste endringen er å bruke parallelle streams i Java. Dette gjøres enkelt og greit med
-å legge til '.parallel()' før kallet til '.map()' på linje 68 i Solution.java.
+å legge til '.parallel()' før kallet til '.map()' på linje 66 i Solution.java.
 
 * Bygg applikasjonen på nytt
 * Sammenlign tidsforbruk på de to versjonene

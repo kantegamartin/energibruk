@@ -8,20 +8,18 @@ import java.util.TreeMap;
 import java.util.stream.Collector;
 
 import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.groupingByConcurrent;
 
 public class Solution {
 
     private static final String FILE = "./measurements.txt";
 
-    private static record Measurement(String station, double value) {
+    private record Measurement(String station, double value) {
         private Measurement(String[] parts) {
             this(parts[0], Double.parseDouble(parts[1]));
         }
     }
 
-    private static record ResultRow(double min, double mean, double max) {
-
+    private record ResultRow(double min, double mean, double max) {
         public String toString() {
             return round(min) + "/" + round(mean) + "/" + round(max);
         }
