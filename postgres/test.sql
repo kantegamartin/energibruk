@@ -1,6 +1,6 @@
 \o /tmp/output
 -- Load the data
-DROP TABLE TEST;
+DROP TABLE IF EXISTS TEST;
 CREATE UNLOGGED TABLE TEST(CITY TEXT, TEMPERATURE FLOAT);
 CREATE INDEX test_idx_city_temperature ON "test" ("city","temperature");
 COPY TEST(CITY, TEMPERATURE) FROM '/1brc/measurements.txt' DELIMITER ';' CSV;
