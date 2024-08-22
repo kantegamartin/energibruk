@@ -1,13 +1,18 @@
 # Energi-workshop
 
-En liten workshop for å se på energiforbruk i koden og hva som påvirker den.
+I denne workshoppen ser vi på hvordan vi kan måle energiforbruket til koden vår. Dette kan vi bruke til å se på reduksjon i forbruk når vi optimaliserer koden. Eller vi kan sammenligne mellom implementasjoner i forskjellige språk.
+
+Den enkleste måten å gjennomføre denne workshoppen på, er å bruke Java på enten MacOS eller Linux. Workshoppen inneholder noen optimaliseringseksempler i Java, så det er ikke nødvendig å være ekspert i det språket. Bare pass på at `mvn --version` og `java -version` refererer til samme Java-versjon.
+
+Når det gjelder Windows, så krever måling av energiforbruk i prosessoren installasjon av en usignert kjernedriver. Det betyr at Windows må settes i testmodus. Ingen av disse tingene er å anbefale, så det er kanskje lurere å sitte med noen som har Linux eller MacOS.
+
+Workshoppen inneholder også eksempler på bruk av NodeJS og PostgreSQL. Disse gir ikke like mye informasjon om koden som Java-versjonen. På den annen side er målingene der mer generiske. Dersom du ønsker å se på implementasjoner i andre språk som Python eller Rust, kan teknikken beskrevet der brukes.
 
 ## Eksempelkode
-
 Utgangspunktet er [One Billion Row Challenge](1brc.dev). Dette er et enkelt lite problem som går
 ut på å kjappest mulig lese en fil med 1 milliard temperaturmålinger og skrive ut målestasjonene i alfabetisk rekkefølge og med minimums-, gjennomsnitts- og maksimumstemperatur for hver.
 
-Koden fra utfordringen ligger i katalogen 1brc/java. Denne koden er lisensiert med Apache 2.0 lisensen. Se avsnitt om 'Java-kode' for mer info om opphavsrett til denne koden.
+Koden fra utfordringen ligger i katalogen 1brc/java. Denne koden er lisensiert med Apache 2.0 lisensen. Se avsnitt nederst om 'Kode og opphavsrett' for mer info om opphavsrett til denne koden.
 
 # Oppgaver
 
@@ -222,6 +227,13 @@ psql postgresql://postgres:postgres@localhost:5432/sustainability -f test.sql
 * Hva skyldes forskjellen?
 * Hvordan er forholdet mellom tid og energiforbruk her?
 
+# Avsluttende diskusjoner
+
+Denne workshoppen har vist hvordan vi kan måle energiforbruket av applikasjonene våre under utvikling. Det kan vi bruke til å redusere energibehovet vi har. Da sparer vi både penger og miljøet, og ofte også brukernes tid. De applikasjonene vi lager har sjelden stort volum. Enterprise-applikasjoner har gjerne et par-tre transaksjoner i sekundet i vanlig arbeidstid. Det kan gjerne kjøres på en Rasberry Pi. Likevel setter vi opp blå-grønn kubernetes og maskiner som kjører døgnet rundt. Hva er det egentlige energibehovet for det vi har laget? Hva introduserer vi når vi konfigurerer opp en moderne infrastruktur i skyen?
+
+Et annet spørsmål vi kan stille oss, er hva vi gjør når vi optimaliserer kode. Er det noe som mistes? Noen av kode-endringene for 1BRC, er nokså generelle. De kan tom. gjøre koden enklere å forstå. Men de aller raskeste løsningene bryter med sikkerhetsregimet til Java, og er veldig optimalisert mot akkurat det datasettet som brukes. Dette kan gjøre koden mindre egnet for utvidelser. Hvor går denne grensen? Når er det greit å ofre lesbarehet for den siste halve joule med energi?
+
+Vi kan også stille oss spørsmålet om 'tid' er en god proxy for 'energiforbruk'. I så fall kan vi bruke mer vanlige profilere under optimaliseringen. Hva blir konsekvensene av dette?
 
 # Kode og opphavsrett
 
@@ -236,3 +248,7 @@ CreateMeasurements.java:
 Til slutt har jeg tatt med siste versjon av pom.xml per [db06419](https://github.com/gunnarmorling/1brc/tree/db064194be375edc02d6dbcd21268ad40f7e2869), men da bare oppdateringene i pom.xml.
 
 Det er mange mennesker som har opphavsrett til denne koden. Vennligst se det opprinnelige [repo på GitHub](https://github.com/gunnarmorling/1brc.git) for dette.
+
+## Javascript-kode
+
+Javaskript-koden er basert på: https://github.com/Edgar-P-yan/1brc-nodejs-bun#submitting.
