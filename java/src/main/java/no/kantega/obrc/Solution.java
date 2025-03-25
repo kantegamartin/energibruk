@@ -64,6 +64,7 @@ public class Solution {
 
         Map<String, ResultRow> measurements = new TreeMap<>(Files.lines(Paths.get(file))
                 .map(l -> new Measurement(l.split(";")))
+                .parallel()
                 .collect(groupingBy(m -> m.station(), collector)));
 
         System.out.println(measurements);

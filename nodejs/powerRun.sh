@@ -5,7 +5,7 @@ if [ -z "$FILE" ]; then
   FILE=measurements.txt
 fi
 
-sudo echo "Kjører med '$FILE'"
+sudo echo "Running with '$FILE'"
 
 ./nodeRun.sh $FILE &
 ID=$!

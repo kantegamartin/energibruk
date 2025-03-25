@@ -1,254 +1,267 @@
-# Energi-workshop
+# Optimizing for Sustainability
 
-I denne workshoppen ser vi på hvordan vi kan måle energiforbruket til koden vår. Dette kan vi bruke til å se på reduksjon i forbruk når vi optimaliserer koden. Eller vi kan sammenligne mellom implementasjoner i forskjellige språk.
+In this workshop, we'll explore how to measure the energy consumption of our code. We can use this to observe consumption reduction when optimizing code, or to compare implementations across different programming languages. 
 
-Den enkleste måten å gjennomføre denne workshoppen på, er å bruke Java på enten MacOS eller Linux. Workshoppen inneholder noen optimaliseringseksempler i Java, så det er ikke nødvendig å være ekspert i det språket. Bare pass på at `mvn --version` og `java -version` refererer til samme Java-versjon.
+The simplest way to complete this workshop is to use Java on either MacOS or Linux. The workshop includes some optimization examples in Java, so expertise in the language isn't necessary. Just ensure that mvn --version and java -version refer to the same Java version. 
 
-Når det gjelder Windows, så krever måling av energiforbruk i prosessoren installasjon av en usignert kjernedriver. Det betyr at Windows må settes i testmodus. Ingen av disse tingene er å anbefale, så det er kanskje lurere å sitte med noen som har Linux eller MacOS.
+Regarding Windows, measuring CPU energy consumption requires installing an unsigned kernel driver. This means Windows must be set to test mode. Neither of these is recommended, so it might be better to work with someone who has Linux or MacOS. It is also possible to assume that time is a decent proxy for energy consumtion, and just time the various runs.
 
-Workshoppen inneholder også eksempler på bruk av NodeJS og PostgreSQL. Disse gir ikke like mye informasjon om koden som Java-versjonen. På den annen side er målingene der mer generiske. Dersom du ønsker å se på implementasjoner i andre språk som Python eller Rust, kan teknikken beskrevet der brukes.
+The workshop also includes examples using NodeJS and PostgreSQL. These don't provide as much code information as the Java version. However, their measurements are more generic. If you want to look at implementations in other languages like Python or Rust, the technique described there can be used.
 
-## Eksempelkode
-Utgangspunktet er [One Billion Row Challenge](1brc.dev). Dette er et enkelt lite problem som går
-ut på å kjappest mulig lese en fil med 1 milliard temperaturmålinger og skrive ut målestasjonene i alfabetisk rekkefølge og med minimums-, gjennomsnitts- og maksimumstemperatur for hver.
 
-Koden fra utfordringen ligger i katalogen 1brc/java. Denne koden er lisensiert med Apache 2.0 lisensen. Se avsnitt nederst om 'Kode og opphavsrett' for mer info om opphavsrett til denne koden.
+## Example Code 
 
-# Oppgaver
+The starting point is [The One Billion Row Challenge](https://www.morling.dev/blog/one-billion-row-challenge/). This is a simple problem that involves reading a file containing 1 billion temperature measurements as quickly as possible and outputting the measuring stations in alphabetical order with their minimum, average, and maximum temperatures. 
 
-## Oppgave 1
+The code from the challenge is located in the `1brc/java` directory. This code is licensed under the Apache 2.0 license. See the section at the bottom about 'Code and Copyright' for more information about the copyright of this code. 
 
-Det første som trengs er å lage en fil med målinger som kan leses. Dette gjøres ved å bygge 1brc/java med Java 21 og Maven 3.9. Deretter kjøres den resulterende jar-filen med et antall rader som skal genereres som parameter.
+# Tasks
 
-Det enkleste er å kjøre skriptet 'c' i 1brc:
+## Task 1 
+
+The first requirement is to create a file with measurements that can be read. This is done by building `1brc/java` with Java 24 and Maven 3.9.9. Then run the resulting jar file with a parameter specifying the number of rows to generate. 
+
+The simplest approach is to run the `createMeasurements.sh` script in the 1brc folder:
 ```shell
 ./createMeasurements.sh 100
 ```
-
-Hvis bash ikke er tilgjengelig, kjøres genereringen via standard Java-kommandoer:
+If bash isn't available, run the generation using standard Java commands:
 ```shell
 mvn package
 java -cp target/average-1.0.0-SNAPSHOT.jar dev.morling.onebrc.CreateMeasurements 100
 ```
+The resulting file `measurements.txt` will contain 100 rows and can be used in subsequent tasks. It's advisable to create different variants with varying numbers of rows. Running the baseline code with 100 million rows takes over 20 seconds on my machine. Running the full billion rows, should probably wait for more optimized code.
 
-Den resulterende filen 'measurements.txt' inneholder så 100 rader og kan benyttes i de påfølgende oppgavene. Det kan være lurt å lage litt forskjellige varianter med litt forskjellig antall rader. Å kjøre baseline-koden med 100 millioner rader tar over 20 sekunder på min maskin.
+## Task 2
 
-## Oppgave 2
+There's a simple Java implementation in the `java` folder. This reads all lines in the file, splits each line on semicolon, and creates an instance of the `Measurement` class for each line. It then uses a `Collector` to group by station name and aggregate min, max, and average in a `MeasurementAggregator`. Finally, the result is stored in a `ResultRow` where the result is sorted using a `TreeMap` before being output. 70 lines and nothing fancy. 
 
-Det finnes en enkel Java-implementasjon i mappen 'java'. Denne leser alle linjene i filen, splitter hver linje på ; og lager en instans av Measurement-klassen for hver linje. Så bruker den en Collector til å gruppere på målestasjonsnavn og aggregere opp min, maks og gjennomsnitt i en MeasurementAggregator. Til slutt lagres resultatet i en ResultRow der resultatet sorteres vha. en TreeMap for så å bli skrevet ut derfra. 70 linjer og ikke noe fancy.
-
-Denne må bygges og kjøres:
+This needs to be built and run: 
 ```shell
 mvn package
 java -cp target/one-billion-row-challenge-1.0.0-SNAPSHOT.jar no.kantega.obrc.Solution ../1brc/measurements.txt
-# Kan også ta tiden ved å bruke 'time'-kommandoen:
+# Can also time it using the 'time' command:
 time java -cp target/one-billion-row-challenge-1.0.0-SNAPSHOT.jar no.kantega.obrc.Solution ../1brc/measurements.txt
 ```
 
-Det er vedlagt et script 'timeRun.sh' som tar inn et filnavn som parameter og tar tiden på kjøringen.
+A script `timeRun.sh` is included that takes a filename as a parameter and times the execution. 
 
-Prøv gjerne med litt forskjellige filer.
+Try with files of different sizes if you'd like. 
 
-## Oppgave 3
+## Task 3 
 
-[JoularJX](https://www.noureddine.org/research/joular/joularjx) er en Java-agent som måler energiforbruket til en applikasjon under kjøring.
-Versjon 3.0.0 er vedlagt i repoet. Agenten bruker Intel sitt RAPL (Running Average Power Limit) grensesnitt for å lese av energibruken til
-applikasjonen under kjøring. Siden dette går inn i kjernen av prosessoren, er dette kun tilgjengelig via priviligert tilgang. Det betyr at vi må laste ned og installere drivere og verktøy fra GitHub og kjøre de i administratormodus. Her er det mange røde flagg!
+[JoularJX](https://www.noureddine.org/research/joular/joularjx) is a Java agent that measures the energy consumption of an application during runtime. Version 3.0.1 is included in the repo. The agent uses Intel's RAPL (Running Average Power Limit) interface to read the application's energy usage during runtime. Since this accesses the processor's core functionality, it's only available via privileged access. This means we need to download and install drivers and tools from GitHub and run them in administrator mode. There are many red flags here! 
 
-Det er vedalgt et script 'joularRun.sh' som gjør forsøk på å finne en fungerende java og kjøre denne som 'root' med joularjx-agenten. På samme måte som 'timeRun.sh', tar den inn et filnavn som parameter. Dette filnavnet angir hvilken fil som skal leses.
-
-### Virtuell maskin?
-
-Å kjøre det i en virtuell maskin, fungerer ganske dårlig, ettersom det faktiske energiforbruket må hentes fra en faktisk prosessor. Det er mulig å installere noe som f.x. [PowerJoular](https://www.noureddine.org/articles/powerjoular-1-0-monitoring-inside-virtual-machines). Denne kan eksponere den underliggende RAPL-informasjonen til en VirtualBox- eller VMWare-instans. En annen mulighet er [Scaphandre](https://github.com/hubblo-org/scaphandre), som gir et Prometheus-grensesnitt inn i energimåling.
-
-Men vi har strengt tatt ikke løst problemet.
-
-* Er det noen måte dette **kan** løses på?
+A script `joularRun.sh` is included that attempts to find a working Java installation and run it as 'root' with the joularjx agent. Like `timeRun.sh`, it takes a filename as a parameter, which specifies which file to read. 
 
 
-### Linux / macOS
-En utfordring er at Java gjerne ikke er installert for root. 
+### Virtual Machine? 
+
+Running this in a virtual machine works quite poorly, as actual energy consumption must be obtained from a physical processor. It's possible to install something like [PowerJoular](https://www.noureddine.org/articles/powerjoular-1-0-monitoring-inside-virtual-machines). This can expose the underlying RAPL information to a VirtualBox or VMWare instance. Another option is [Scaphandre](https://github.com/hubblo-org/scaphandre), which provides a Prometheus interface for energy measurement. 
+
+But we haven't really solved the problem. 
+
+* Is there any way this **can** be solved? 
+
+### Linux / macOS 
+
+One challenge is that Java is typically not installed for root:
 ```shell
 $ java -version
-openjdk version "21.0.3" 2024-04-16 LTS
-OpenJDK Runtime Environment Temurin-21.0.3+9 (build 21.0.3+9-LTS)
-OpenJDK 64-Bit Server VM Temurin-21.0.3+9 (build 21.0.3+9-LTS, mixed mode, sharing)
+openjdk version "24" 2025-03-18
+OpenJDK Runtime Environment Temurin-24+36 (build 24+36)
+OpenJDK 64-Bit Server VM Temurin-24+36 (build 24+36, mixed mode, sharing)
 $ sudo !!
 sudo java -version
-[sudo] password for martin: 
+[sudo] password for martin:
 sudo: java: command not found
 ```
 
-Vi trenger heldigvis bare tilgang til selve programmet 'java', og så kan vi bruke full sti uten å måtte sette opp full JDK-støtte for root.
-
+Fortunately, we only need access to the `java` executable itself, and we can use the full path without needing to set up full JDK support for root. 
 ```shell
-sudo $JAVA_HOME/bin/java -javaagent:joularjx-3.0.0.jar -cp target/one-billion-row-challenge-1.0.0-SNAPSHOT.jar no.kantega.obrc.Solution ../1brc/measurements.txt
+sudo $JAVA_HOME/bin/java -javaagent:joularjx-3.0.1.jar -cp target/one-billion-row-challenge-1.0.0-SNAPSHOT.jar no.kantega.obrc.Solution ../1brc/measurements.txt
 ```
-
-Merk at JAVA_HOME ikke nødvendigvis peker på den samme Java-installasjonen som den Maven bruker.
-
+Note that JAVA_HOME might not point to the same Java installation that Maven uses. 
 ```shell
 $ echo $JAVA_HOME
 /home/martin/.sdkman/candidates/java/current
 $ mvn --version
-Apache Maven 3.9.6 (bc0240f3c744dd6b6ec2920b3cd08dcc295161ae)
+Apache Maven 3.9.9 (8e8579a9e76f7d015ee5ec7bfcdc97d260186937)
 Maven home: /home/martin/.sdkman/candidates/maven/current
-Java version: 21.0.3, vendor: Eclipse Adoptium, runtime: /home/martin/.sdkman/candidates/java/21.0.3-tem
+Java version: 24, vendor: Eclipse Adoptium, runtime: /home/martin/.sdkman/candidates/java/24-tem
 Default locale: en_US, platform encoding: UTF-8
-OS name: "linux", version: "6.8.0-39-generic", arch: "amd64", family: "unix"
+OS name: "linux", version: "6.11.0-21-generic", arch: "amd64", family: "unix"
 ```
 
-JAVA_HOME peker på /home/martin/.sdkman/candidates/java/current, mens maven finner java i /home/martin/.sdkman/candidates/java/21.0.3-tem. Siden jeg bruker [SDKMAN](https://sdkman.io/), er den første en soft link til den siste. Ditt oppsett kan gi litt forskjellige resultater.
+`JAVA_HOME` is pointing at /home/martin/.sdkman/candidates/java/current, while maven finds java in /home/martin/.sdkman/candidates/java/24-tem. I'm using [SDKMAN](https://sdkman.io/), so the first is a soft link to the latter. Your setup might have slightly different issues.
 
-### Windows
 
-Windows krever litt mer programvare for å kunne kjøre Java-agenten. RAPL er nemlig ikke direkte tilgjengelig. 
+### Windows 
 
-#### Visual C++ Redistributable
-Denne er tilgjenelig fra Microsoft her: https://aka.ms/vs/17/release/vc_redist.x64.exe
-Beskrivelse finnes her: https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170
+Windows requires additional software to run the Java agent, as RAPL is not directly accessible. 
 
-#### RAPL-driver
-RAPL-driveren finnes her: https://github.com/hubblo-org/windows-rapl-driver. Den er ikke signert, så den krever litt konfigurasjon av Windows for å godta usignerte drivere. Det betyr også er restart av maskinen. Alt er beskrevet i README.md i hubblo-org-repoet.
+#### Visual C++ Redistributable 
 
-#### PowerMonitor
-PowerMonitor er et interface mellom RAPL-driveren og Java-agenten. Denne kan lastes ned her: https://github.com/joular/WinPowerMonitor. Hvis du ikke lagrer den i "C:\joularjx", må du oppdatere config.properties-filen til å peke på rett sted.
+This is available from Microsoft here: https://aka.ms/vs/17/release/vc_redist.x64.exe 
+Description can be found here: https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170  
 
-#### Kjøring
-Nå kan vi kjøre applikasjonen på Windows med:
+#### RAPL Driver 
+
+The RAPL driver is available here: https://github.com/hubblo-org/windows-rapl-driver . It's unsigned, so it requires Windows configuration to accept unsigned drivers. This also means a machine restart. Everything is described in the README.md in the hubblo-org repo. 
+
+#### PowerMonitor 
+
+PowerMonitor is an interface between the RAPL driver and the Java agent. This can be downloaded here: https://github.com/joular/WinPowerMonitor . If you don't store it in "C:\joularjx", you'll need to update the config.properties file to point to the correct location. 
+
+#### Running 
+
+Now we can run the application on Windows with: 
 ```shell
-java -javaagent:joularjx-3.0.0.jar -cp target/one-billion-row-challenge-1.0.0-SNAPSHOT.jar no.kantega.obrc.Solution ../1brc/measurements.txt
+java -javaagent:joularjx-3.0.1.jar -cp target/one-billion-row-challenge-1.0.0-SNAPSHOT.jar no.kantega.obrc.Solution ../1brc/measurements.txt
 ```
 
-## Oppgave 4
+Task 4 
 
-Resultatet hos meg blir da noe slikt som:
+The result on my machine looks something like this:
 ```
-08/08/2024 05:06:57.909 - [INFO] - +---------------------------------+
-08/08/2024 05:06:57.910 - [INFO] - | JoularJX Agent Version 3.0.0    |
-08/08/2024 05:06:57.910 - [INFO] - +---------------------------------+
-08/08/2024 05:06:57.925 - [INFO] - Results will be stored in joularjx-result/2060117-1723129617923/
-08/08/2024 05:06:57.936 - [INFO] - Initializing for platform: 'linux' running on architecture: 'amd64'
-08/08/2024 05:06:57.947 - [INFO] - Please wait while initializing JoularJX...
-08/08/2024 05:06:58.963 - [INFO] - Initialization finished
-08/08/2024 05:06:58.965 - [INFO] - Started monitoring application with ID 2060117
+Kjører java fra '/home/martin/.sdkman/candidates/java/current/bin/java':
+openjdk version "24" 2025-03-18
+OpenJDK Runtime Environment Temurin-24+36 (build 24+36)
+OpenJDK 64-Bit Server VM Temurin-24+36 (build 24+36, mixed mode, sharing)
+25/03/2025 05:28:18.537 - [INFO] - +---------------------------------+
+25/03/2025 05:28:18.538 - [INFO] - | JoularJX Agent Version 3.0.1    |
+25/03/2025 05:28:18.538 - [INFO] - +---------------------------------+
+25/03/2025 05:28:18.553 - [INFO] - Results will be stored in joularjx-result/219079-1742920098552/
+25/03/2025 05:28:18.557 - [INFO] - Initializing for platform: 'linux' running on architecture: 'amd64'
+25/03/2025 05:28:18.571 - [INFO] - Please wait while initializing JoularJX...
+25/03/2025 05:28:19.585 - [INFO] - Initialization finished
+25/03/2025 05:28:19.587 - [INFO] - Started monitoring application with ID 219079
 
-{Abéché=30.8/30.8/30.8, Albuquerque=16.7/16.7/16.7, ... }
+{Abha=2.0/15.7/31.8, Abidjan=27.7/29.8/31.8, ... İzmir=8.9/15.5/21.7}
 
-08/08/2024 05:07:00.080 - [INFO] - Thread CPU time negative, taking previous time + 1 : 1 for thread: 1
-08/08/2024 05:07:00.101 - [INFO] - JoularJX finished monitoring application with ID 2060117
-08/08/2024 05:07:00.102 - [INFO] - Program consumed 5.81 joules
-08/08/2024 05:07:00.109 - [INFO] - Energy consumption of methods and filtered methods written to files
+25/03/2025 05:28:20.729 - [INFO] - Thread CPU time negative, taking previous time + 1 : 1 for thread: 3
+25/03/2025 05:28:20.783 - [INFO] - JoularJX finished monitoring application with ID 219079
+25/03/2025 05:28:20.783 - [INFO] - Program consumed 5.92 joules
+25/03/2025 05:28:20.823 - [INFO] - Energy consumption of methods and filtered methods written to files
+
 ```
 
-JoularJX rapporterer nå energiforbruket i terminalen (her 5,81 joules). I tillegg opprettes det en katalog 'joularjx-result'. 
-Under der lages det en katalog for hver joularjx-kjøring. Her 2060117-1723129617923, der 2060117 er prosess-id'en som kjøres
-og 1723129617923 er tidspunktet kjøringen startet (Unix epoch for 8. august, 2024 17:06:57.923 GMT+02:00 CEST). 
-Det lagres mye informasjon om kjøringen i filene under her. For eksempel kan vi se på filen joularJX-*-all-methods-energy.csv' i
-'joularjx-result/*/all/total/methods'. Denne inneholder en liste av alle metoder som er kalt, og hvor mye
-energi hver brukte.
+JoularJX now reports the energy consumption in the terminal (here 5.92 joules). Additionally, a directory 'joularjx-result' is created.
+Under this, a directory is created for each joularjx run. Here 219079-1742920098552, where 219079 is the process ID being run
+and 1742920098552 is the timestamp when the run started (Unix epoch for Tue, 25 Mar 2025 17:31:54 CEST).
+Lots of information about the run is stored in the files here. For example, we can look at the file 'joularJX--all-methods-energy.csv' in
+'joularjx-result//all/total/methods'. This contains a list of all methods called and how much
+energy each used. 
 
-* Hvilke metoder er dyrest?
+* Which methods are the most expensive?
 
-## Oppgave 5
+## Task 5 
 
-Vi kan selvsagt se på den dyreste metoden og optimalisere den. Men JVM har en del interessante triks i ermet som vi kan prøve først. Den aller enkleste endringen er å bruke parallelle streams i Java. Dette gjøres enkelt og greit med
-å legge til '.parallel()' før kallet til '.map()' på linje 66 i Solution.java.
+We can of course look at the most expensive method and optimize it. But the JVM has some interesting tricks up its sleeve that we can try first. The simplest change is to use parallel streams in Java. This is done simply by adding `.parallel()` after the `.map()` call on line 66 in Solution.java. 
 
-* Bygg applikasjonen på nytt
-* Sammenlign tidsforbruk på de to versjonene
-* Sammenlign energiforbruk på de to versjonene
-* Er forholdet mellom tid og energi som forventet?
+1. Build the application again
+1. Compare time consumption between the two versions
+1. Compare energy consumption between the two versions
+1. Is the relationship between time and energy as expected?
 
-## Oppgave 6
+## Task 6 
 
-Det finnes også en løsning i Javascript i katalogen 'nodejs'. Denne bruker de samme filene som genereres for Java-løsningen. Koden bruker Node 20 og kan kjøres med
-
+There's also a solution in Javascript in the `nodejs` directory. This uses the same files that are generated for the Java solution. The code uses Node 20 and can be run with: 
 ```shell
 time node baseline/index.js ../1brc/measurements.txt
 ```
 
-## Oppgave 7
+## Task 7 
 
-For å måle energiforbruket på et Java-program, brukte vi en dedikert Java-agent. For NodeJS, kan vi bruke den generiske [PowerJoular](https://github.com/joular/powerjoular), men denne støtter for tiden bare Linux.
+To measure energy consuxmption of a Java program, we used a dedicated Java agent. For NodeJS, we can use the generic [PowerJoular](https://github.com/joular/powerjoular), but this currently only supports Linux. 
 
-PowerJoular installeres og lastes ned ved å bygge [Ada-koden selv](https://joular.github.io/powerjoular/ref/compilation.html), eller ved å [laste ned ferdige pakker](https://github.com/joular/powerjoular/releases) for Debian eller Red Hat.
+PowerJoular can be installed and downloaded by either building [the Ada code yourself](https://joular.github.io/powerjoular/ref/compilation.html), or by [downloading the pre-built packages](https://github.com/joular/powerjoular/releases) for Debian or Red Hat. 
 
-PowerJoular måler energiforbruket i prosessoren i real time. Den kan begrenses til en enkelt prosess med et -p parameter. I tillegg kan den skrive til en fil underveis.
+PowerJoular measures processor energy consumption in real time. It can be limited to a single process with a -p parameter. Additionally, it can write to a file during execution. 
 
-Ved å kjøre
+By running: 
 ```shell
 sudo powerjoular -p $ID -t -f p.out
 ```
-får vi energiforbruket til prosess ID skrevet ut på skjermen (-t) og til filen p.out (-f). 
+we get the energy consumption of process ID written to both the screen (-t) and to the file p.out (-f). 
 
-PowerJoular rapporterer bruk frem til den avsluttes. Dersom programmet den overvåker avsluttes, feiler den. Så for å måle en kjøring, må vi:
-1. Starte NodeJs i bakgrunnen og spare på prosess ID
-2. Starte PowerJoular i bakgrunnen og spare på prosess ID
-3. Sende et termineringssignal til PowerJoular når node-appen avsluttes
+PowerJoular reports usage until it's terminated. If the program it's monitoring ends, it fails. So to measure a run, we must: 
 
-Det er vedlagt et skript som gjør dette litt krøkkete, powerRun.sh.
-
-* Kan det forbedres?
-
-## Oppgave 8
-
-* Hvordan kan Javascript-løsningen forbedres?
-* Hvordan blir forholdet mellom spart tid og spart energi?
+1. Start NodeJS in the background and save the process ID
+1. Start PowerJoular in the background and save the process ID
+1. Send a termination signal to PowerJoular when the node app finishes
 
 
-## Oppgave 9
+A script that does this somewhat awkwardly, powerRun.sh, is included. 
 
-Det finnes en løsning for PostgreSQL i postgres-katalogen.Denne baserer seg på å først kjøre PostgreSQL opp i en Docker. Deretter brukes psql til å kjøre et testskript.
+* How can this be improved?
+
+## Taks 8
+
+* How can the Javascript solution be improved?
+* What is the relationship between saved energy and saved time?
+
+## Task 9 
+
+There's a solution for PostgreSQL in the postgres-catalog. This relies on first running PostgreSQL in Docker. Then psql is used to run a test script. 
 
 ```shell
 docker compose up -d
 psql postgresql://postgres:postgres@localhost:5432/sustainability -f test.sql
 ```
 
-Eksperimenter litt med forskjellige datasett til du finner ett som bruker fornuftig kjøretid.
+Experiment with different datasets until you find one that uses a reasonable execution time. 
 
-## Oppgave 10
+## Task 10 
 
-Vi kan bruke PowerJoular til å måle energiforbruket på docker-prosessen mens vi kjører testskriptet. Det gjøres enklest ved å starte powerjoular i et eget vindu:
+We can use PowerJoular to measure the energy consumption of the docker process while running the test script. This is most easily done by starting powerjoular in a separate window: 
+
 ```shell
 sudo powerjoular -p $(pidof docker) -t -f p.out
 ```
 
-Deretter startes testskriptet som i oppgave 9. Når skriptet et ferdig, kan vi avbryte powerjoular for å få totalforbruket.
+Then start the test script as in task 9. When the script is finished, we can interrupt powerjoular to get the total consumption.
 
 ```shell
 psql postgresql://postgres:postgres@localhost:5432/sustainability -f test.sql
 ```
 
-## Oppgave 11
+## Task 11 
 
-* Sammenlign å lage indeksen før og etter innlesing av data ved å bytte om rekkefølgen på 'CREATE INDEX' og 'COPY' i test.sql.
-* Hva skyldes forskjellen?
-* Hvordan er forholdet mellom tid og energiforbruk her?
+1. Compare creating the index before and after data loading by switching the order of 'CREATE INDEX' and 'COPY' in test.sql
+1. What causes the difference?
+1. What's the relationship between time and energy consumption here?
+     
 
-# Avsluttende diskusjoner
+# Concluding Discussions 
 
-Denne workshoppen har vist hvordan vi kan måle energiforbruket av applikasjonene våre under utvikling. Det kan vi bruke til å redusere energibehovet vi har. Da sparer vi både penger og miljøet, og ofte også brukernes tid. De applikasjonene vi lager har sjelden stort volum. Enterprise-applikasjoner har gjerne et par-tre transaksjoner i sekundet i vanlig arbeidstid. Det kan gjerne kjøres på en Rasberry Pi. Likevel setter vi opp blå-grønn kubernetes og maskiner som kjører døgnet rundt. Hva er det egentlige energibehovet for det vi har laget? Hva introduserer vi når vi konfigurerer opp en moderne infrastruktur i skyen?
+This workshop has demonstrated how we can measure the energy consumption of our applications during development. We can use this to reduce our energy needs. This saves both money and the environment, and often users' time as well.
 
-Et annet spørsmål vi kan stille oss, er hva vi gjør når vi optimaliserer kode. Er det noe som mistes? Noen av kode-endringene for 1BRC, er nokså generelle. De kan tom. gjøre koden enklere å forstå. Men de aller raskeste løsningene bryter med sikkerhetsregimet til Java, og er veldig optimalisert mot akkurat det datasettet som brukes. Dette kan gjøre koden mindre egnet for utvidelser. Hvor går denne grensen? Når er det greit å ofre lesbarehet for den siste halve joule med energi?
+The applications we create rarely have large volumes. Enterprise applications typically have two or three transactions per second during normal working hours. This could run on a Raspberry Pi. Yet we set up blue-green kubernetes and machines that run 24/7. What is the actual energy requirement for what we've created? What do we introduce when we configure modern infrastructure in the cloud? 
 
-Vi kan også stille oss spørsmålet om 'tid' er en god proxy for 'energiforbruk'. I så fall kan vi bruke mer vanlige profilere under optimaliseringen. Hva blir konsekvensene av dette?
+Another question we can ask ourselves is what we're doing when we optimize code. Is something lost? Some of the code changes for 1BRC are quite general. They can even make the code easier to understand. But the fastest solutions break Java's security regime and are highly optimized for exactly the dataset being used. This can make the code less suitable for extensions. Where is this boundary? When is it okay to sacrifice readability for the last half joule of energy? 
 
-# Kode og opphavsrett
+We can also ask ourselves whether 'time' is a good proxy for 'energy consumption'. If so, we can use more common profilers during optimization. What are the consequences of this? 
 
-## Java-kode
 
-Jeg har kopiert koden fra https://github.com/gunnarmorling/1brc.git, frem til
-commit [647d0c5](https://github.com/gunnarmorling/1brc/tree/647d0c578ecffe2880ab50195e747d87f0259557). I tillegg har jeg tatt med to oppdateringer på
+# Code and Copyright
+
+## Java code
+
+I have copied the code from https://github.com/gunnarmorling/1brc.git, up to
+commit [647d0c5](https://github.com/gunnarmorling/1brc/tree/647d0c578ecffe2880ab50195e747d87f0259557). Additionally, I included two updates to
 CreateMeasurements.java:
 * [7d485d0](https://github.com/gunnarmorling/1brc/commit/7d485d0e8b4164e1e5ce09e6ffe30d9de8f9ae7a)
 * [38fc317](https://github.com/gunnarmorling/1brc/commit/38fc3170731e82d1c6168cd6ca744cff9c433855)
 
-Til slutt har jeg tatt med siste versjon av pom.xml per [db06419](https://github.com/gunnarmorling/1brc/tree/db064194be375edc02d6dbcd21268ad40f7e2869), men da bare oppdateringene i pom.xml.
+Finally, I included the latest version of pom.xml as of [db06419](https://github.com/gunnarmorling/1brc/tree/db064194be375edc02d6dbcd21268ad40f7e2869), but only the updates in pom.xml. 
 
-Det er mange mennesker som har opphavsrett til denne koden. Vennligst se det opprinnelige [repo på GitHub](https://github.com/gunnarmorling/1brc.git) for dette.
+Many people hold copyright to this code. Please see the original [repo on GitHub](https://github.com/gunnarmorling/1brc.git) for this.
 
-## Javascript-kode
+## Javascript code
 
-Javaskript-koden er basert på: https://github.com/Edgar-P-yan/1brc-nodejs-bun#submitting.
+The Javascript code is based on: https://github.com/Edgar-P-yan/1brc-nodejs-bun#submitting.
+
+## PostgreSQL code
+
+The PostgreSQL code is based on: https://ftisiot.net/posts/1brows/
