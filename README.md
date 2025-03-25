@@ -164,14 +164,20 @@ We can of course look at the most expensive method and optimize it. But the JVM 
 1. Compare energy consumption between the two versions
 1. Is the relationship between time and energy as expected?
 
-## Task 6 
+
+
+# Alternative languages
+
+There are also a Javascript and a PostgreSQL solution suggested here. These cannot use the JoularJX agent. But an option for Linux is shown. 
+
+## Alternative Task 1
 
 There's also a solution in Javascript in the `nodejs` directory. This uses the same files that are generated for the Java solution. The code uses Node 20 and can be run with: 
 ```shell
 time node baseline/index.js ../1brc/measurements.txt
 ```
 
-## Task 7 
+## Alternative Task 2
 
 To measure energy consuxmption of a Java program, we used a dedicated Java agent. For NodeJS, we can use the generic [PowerJoular](https://github.com/joular/powerjoular), but this currently only supports Linux. 
 
@@ -196,12 +202,12 @@ A script that does this somewhat awkwardly, powerRun.sh, is included.
 
 * How can this be improved?
 
-## Taks 8
+## Alternative Task 3
 
 * How can the Javascript solution be improved?
 * What is the relationship between saved energy and saved time?
 
-## Task 9 
+## Alternative Task 4
 
 There's a solution for PostgreSQL in the postgres-catalog. This relies on first running PostgreSQL in Docker. Then psql is used to run a test script. 
 
@@ -212,7 +218,7 @@ psql postgresql://postgres:postgres@localhost:5432/sustainability -f test.sql
 
 Experiment with different datasets until you find one that uses a reasonable execution time. 
 
-## Task 10 
+## Alternative Task 5
 
 We can use PowerJoular to measure the energy consumption of the docker process while running the test script. This is most easily done by starting powerjoular in a separate window: 
 
@@ -226,7 +232,7 @@ Then start the test script as in task 9. When the script is finished, we can int
 psql postgresql://postgres:postgres@localhost:5432/sustainability -f test.sql
 ```
 
-## Task 11 
+## Alternative Task 6
 
 1. Compare creating the index before and after data loading by switching the order of 'CREATE INDEX' and 'COPY' in test.sql
 1. What causes the difference?
